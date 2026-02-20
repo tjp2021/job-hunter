@@ -19,6 +19,28 @@ export interface SearchOptions {
   leverSites?: string[];
 }
 
+const STOPWORDS = new Set(["a", "an", "the", "in", "at", "for", "and", "or", "of", "with", "to", "on", "is"]);
+
+/**
+ * Score how well a job matches the query. Returns 0 for no match.
+ * All meaningful query words must appear somewhere in title + extraText.
+ * Title matches are weighted 2x higher than description-only matches.
+ */
+function matchesQuery(query: string, title: string, extraText: string = ""): number {
+  const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 1 && !STOPWORDS.has(w));
+  if (words.length === 0) return 1;
+
+  const titleLower = title.toLowerCase();
+  const fullText = `${titleLower} ${extraText.toLowerCase()}`;
+
+  const titleMatches = words.filter(w => titleLower.includes(w)).length;
+  const fullMatches = words.filter(w => fullText.includes(w)).length;
+
+  if (fullMatches < words.length) return 0;
+
+  return titleMatches * 2 + (fullMatches - titleMatches);
+}
+
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
 /**
@@ -79,13 +101,15 @@ async function searchGreenhouse(
       if (!res.ok) continue;
       const data = await res.json();
 
-      const queryLower = query.toLowerCase();
-      const jobs = (data.jobs || []).filter((j: any) => {
-        const text = `${j.title} ${j.location?.name || ""}`.toLowerCase();
-        return queryLower.split(/\s+/).some((w: string) => text.includes(w));
-      });
+      const scored = (data.jobs || [])
+        .map((j: any) => {
+          const extra = `${j.location?.name || ""} ${j.content || ""}`;
+          return { job: j, score: matchesQuery(query, j.title, extra) };
+        })
+        .filter((s: any) => s.score > 0)
+        .sort((a: any, b: any) => b.score - a.score);
 
-      for (const j of jobs) {
+      for (const { job: j } of scored) {
         results.push({
           title: j.title,
           company: board,
@@ -123,13 +147,15 @@ async function searchLever(
       if (!res.ok) continue;
       const postings = await res.json();
 
-      const queryLower = query.toLowerCase();
-      const filtered = postings.filter((p: any) => {
-        const text = `${p.text} ${p.categories?.location || ""} ${p.categories?.team || ""}`.toLowerCase();
-        return queryLower.split(/\s+/).some((w: string) => text.includes(w));
-      });
+      const scored = postings
+        .map((p: any) => {
+          const extra = `${p.categories?.location || ""} ${p.categories?.team || ""} ${p.descriptionPlain || p.description || ""}`;
+          return { posting: p, score: matchesQuery(query, p.text, extra) };
+        })
+        .filter((s: any) => s.score > 0)
+        .sort((a: any, b: any) => b.score - a.score);
 
-      for (const p of filtered) {
+      for (const { posting: p } of scored) {
         const location = p.categories?.location || "Unknown";
         results.push({
           title: p.text,

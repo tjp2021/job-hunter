@@ -6,6 +6,7 @@
     "hunt": "bun run job-hunt.ts"
   },
   "dependencies": {
+    "pdf-parse": "^1.1.1",
     "ts-jobspy": "^2.0.3"
   }
 }

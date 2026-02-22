@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resume Review</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f5; color: #222; line-height: 1.5; }
+
+  header { background: #1a1a2e; color: #fff; padding: 16px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  header h1 { font-size: 20px; font-weight: 600; }
+  header select { padding: 6px 10px; border-radius: 6px; border: 1px solid #444; background: #16213e; color: #eee; font-size: 14px; min-width: 240px; }
+
+  .tabs { display: flex; background: #fff; border-bottom: 2px solid #ddd; }
+  .tab { padding: 10px 24px; font-size: 14px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; color: #666; }
+  .tab:hover { color: #333; }
+  .tab.active { color: #0f3460; border-bottom-color: #0f3460; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .meta { padding: 8px 24px; background: #e8e8e8; font-size: 13px; color: #555; }
+
+  .actions { padding: 12px 24px; display: flex; align-items: center; gap: 12px; background: #fff; border-bottom: 1px solid #ddd; }
+  .actions label { font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+  .actions button { padding: 6px 16px; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; font-weight: 500; }
+  .btn-primary { background: #0f3460; color: #fff; }
+  .btn-primary:hover { background: #16213e; }
+  .btn-primary:disabled { background: #999; cursor: default; }
+  .btn-all { background: #e94560; color: #fff; }
+  .btn-all:hover { background: #c73e54; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 16px; }
+
+  /* Suggestion cards */
+  .card { background: #fff; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 12px; padding: 16px; transition: opacity 0.3s; }
+  .card.applied { opacity: 0.5; border-color: #4caf50; }
+  .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .card-header input[type="checkbox"] { width: 16px; height: 16px; }
+  .card-id { font-weight: 700; color: #555; font-size: 14px; }
+  .card-section { font-size: 14px; color: #333; font-weight: 500; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #fff; }
+  .badge-rewrite { background: #2196f3; }
+  .badge-restructure { background: #9c27b0; }
+  .badge-add { background: #4caf50; }
+  .badge-remove { background: #f44336; }
+
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; background: #eee; color: #555; margin-left: 4px; }
+
+  .text-block { padding: 8px 12px; border-radius: 4px; font-size: 13px; margin: 6px 0; white-space: pre-wrap; word-break: break-word; }
+  .text-current { background: #f0f0f0; color: #555; border-left: 3px solid #999; }
+  .text-suggested { background: #e8f5e9; color: #2e7d32; border-left: 3px solid #4caf50; }
+  .text-label { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; margin-top: 8px; }
+
+  .reason { font-size: 13px; color: #666; margin-top: 8px; }
+
+  .status { padding: 16px 24px; margin: 12px auto; max-width: 900px; }
+  .status-box { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; }
+  .status-box.success { border-color: #4caf50; background: #e8f5e9; }
+  .status-box.error { border-color: #f44336; background: #ffebee; }
+
+  .empty { text-align: center; padding: 48px; color: #999; font-size: 16px; }
+
+  /* Profile styles */
+  .profile { max-width: 900px; margin: 0 auto; padding: 16px; }
+  .profile-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .profile-name { font-size: 24px; font-weight: 700; }
+  .profile-contact { font-size: 13px; color: #666; }
+  .profile-section { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+  .profile-section h2 { font-size: 16px; font-weight: 600; color: #1a1a2e; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 6px; }
+  .profile-summary { font-size: 14px; color: #444; line-height: 1.6; }
+  .experience-item { margin-bottom: 14px; }
+  .experience-item:last-child { margin-bottom: 0; }
+  .exp-title { font-weight: 600; font-size: 14px; }
+  .exp-company { color: #555; font-size: 13px; }
+  .exp-dates { font-size: 12px; color: #888; }
+  .exp-bullets { margin-top: 4px; padding-left: 18px; font-size: 13px; color: #444; }
+  .exp-bullets li { margin-bottom: 2px; }
+  .exp-tech { font-size: 12px; color: #888; margin-top: 4px; }
+  .skill-cat { font-weight: 600; font-size: 13px; color: #333; }
+  .skill-items { font-size: 13px; color: #555; }
+  .edu-item { font-size: 13px; margin-bottom: 4px; }
+  .profile-urls a { font-size: 13px; color: #0f3460; text-decoration: none; margin-right: 12px; }
+  .profile-urls a:hover { text-decoration: underline; }
+  .profile-refresh { padding: 4px 12px; border: 1px solid #ddd; border-radius: 4px; background: #fff; cursor: pointer; font-size: 12px; color: #666; }
+  .profile-refresh:hover { background: #f5f5f5; }
+
+  /* Upload zone */
+  .upload-zone { max-width: 900px; margin: 0 auto; padding: 16px; }
+  .drop-area { border: 2px dashed #ccc; border-radius: 12px; padding: 48px 24px; text-align: center; background: #fafafa; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+  .drop-area.dragover { border-color: #0f3460; background: #e8f0fe; }
+  .drop-area p { color: #666; font-size: 15px; margin-bottom: 12px; }
+  .drop-area .hint { font-size: 12px; color: #999; }
+  .upload-or { text-align: center; padding: 12px; color: #999; font-size: 13px; }
+  .paste-area textarea { width: 100%; min-height: 180px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 13px; resize: vertical; }
+  .paste-area label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+  .upload-actions { text-align: center; padding: 16px 0; }
+
+  /* Profile editor form */
+  .editor { max-width: 900px; margin: 0 auto; padding: 16px; }
+  .editor-split { display: flex; gap: 16px; }
+  .editor-raw { flex: 1; min-width: 0; }
+  .editor-raw textarea { width: 100%; height: 400px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: monospace; font-size: 12px; resize: vertical; background: #f9f9f9; }
+  .editor-raw label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+  .editor-form { flex: 1; min-width: 0; }
+  .form-group { margin-bottom: 12px; }
+  .form-group label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 4px; text-transform: uppercase; }
+  .form-group input, .form-group textarea { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; font-size: 13px; }
+  .form-group textarea { min-height: 60px; resize: vertical; }
+  .repeater { background: #f9f9f9; border: 1px solid #eee; border-radius: 8px; padding: 12px; margin-bottom: 8px; position: relative; }
+  .repeater .remove-btn { position: absolute; top: 8px; right: 8px; background: #f44336; color: #fff; border: none; border-radius: 4px; width: 24px; height: 24px; cursor: pointer; font-size: 14px; line-height: 24px; text-align: center; }
+  .add-btn { padding: 6px 14px; border: 1px dashed #ccc; border-radius: 6px; background: #fff; cursor: pointer; font-size: 13px; color: #666; }
+  .add-btn:hover { border-color: #999; color: #333; }
+  .editor-actions { display: flex; gap: 12px; padding: 16px 0; justify-content: flex-end; }
+  .btn-secondary { padding: 6px 16px; border: 1px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; font-size: 14px; color: #666; font-weight: 500; }
+  .btn-secondary:hover { background: #f5f5f5; }
+  .profile-btns { display: flex; gap: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Resume Review</h1>
+  <select id="jobSelect"><option value="">Loading...</option></select>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-tab="profile">Your Resume</div>
+  <div class="tab" data-tab="suggestions">Suggestions</div>
+</div>
+
+<!-- Profile tab -->
+<div class="tab-panel active" id="panel-profile">
+  <div class="profile" id="profileContent">
+    <div class="empty">Loading profile...</div>
+  </div>
+</div>
+
+<!-- Suggestions tab -->
+<div class="tab-panel" id="panel-suggestions">
+  <div class="meta" id="meta"></div>
+  <div class="actions">
+    <label><input type="checkbox" id="selectAll"> Select All</label>
+    <button class="btn-primary" id="btnApply" disabled>Apply Selected</button>
+    <button class="btn-all" id="btnAll">Apply All</button>
+  </div>
+  <div class="container" id="cards"></div>
+  <div class="status" id="statusArea"></div>
+</div>
+
+<script>
+const jobSelect = document.getElementById("jobSelect");
+const metaEl = document.getElementById("meta");
+const cardsEl = document.getElementById("cards");
+const statusArea = document.getElementById("statusArea");
+const selectAllCb = document.getElementById("selectAll");
+const btnApply = document.getElementById("btnApply");
+const btnAll = document.getElementById("btnAll");
+const profileContent = document.getElementById("profileContent");
+
+let currentJobId = null;
+let suggestions = [];
+
+// --- Tabs ---
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("panel-" + tab.dataset.tab).classList.add("active");
+  });
+});
+
+// --- Profile (three-state UI) ---
+let uploadedRawText = "";
+
+async function loadProfile() {
+  const res = await fetch("/api/profile");
+  if (!res.ok) {
+    showUploadState();
+    return;
+  }
+  const p = await res.json();
+  renderProfileView(p);
+}
+
+function showUploadState() {
+  let html = '<div class="upload-zone">';
+  html += '<div class="drop-area" id="dropArea">';
+  html += '<p>Drag & drop your resume here</p>';
+  html += '<p class="hint">PDF, TXT, or Markdown</p>';
+  html += '<input type="file" id="fileInput" accept=".pdf,.txt,.md" style="display:none">';
+  html += '</div>';
+  html += '<div class="upload-or">or paste your resume text below</div>';
+  html += '<div class="paste-area">';
+  html += '<label for="pasteText">Resume text</label>';
+  html += '<textarea id="pasteText" placeholder="Paste your resume content here..."></textarea>';
+  html += '</div>';
+  html += '<div class="upload-actions">';
+  html += '<button class="btn-primary" id="btnUpload">Upload & Parse</button>';
+  html += '</div>';
+  html += '<div id="uploadStatus"></div>';
+  html += '</div>';
+  profileContent.innerHTML = html;
+
+  const dropArea = document.getElementById("dropArea");
+  const fileInput = document.getElementById("fileInput");
+  const pasteText = document.getElementById("pasteText");
+  const btnUpload = document.getElementById("btnUpload");
+
+  dropArea.addEventListener("click", () => fileInput.click());
+  dropArea.addEventListener("dragover", e => { e.preventDefault(); dropArea.classList.add("dragover"); });
+  dropArea.addEventListener("dragleave", () => dropArea.classList.remove("dragover"));
+  dropArea.addEventListener("drop", e => {
+    e.preventDefault();
+    dropArea.classList.remove("dragover");
+    if (e.dataTransfer.files.length) {
+      fileInput.files = e.dataTransfer.files;
+      dropArea.querySelector("p").textContent = e.dataTransfer.files[0].name;
+    }
+  });
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files.length) dropArea.querySelector("p").textContent = fileInput.files[0].name;
+  });
+
+  btnUpload.addEventListener("click", async () => {
+    const statusEl = document.getElementById("uploadStatus");
+    if (fileInput.files && fileInput.files.length) {
+      const fd = new FormData();
+      fd.append("file", fileInput.files[0]);
+      btnUpload.disabled = true;
+      btnUpload.textContent = "Parsing...";
+      try {
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
+        const data = await res.json();
+        if (!res.ok) { statusEl.innerHTML = '<div class="status-box error">' + esc(data.error) + '</div>'; return; }
+        uploadedRawText = data.rawText;
+        showEditorState(data.parsed, data.rawText);
+      } catch (e) {
+        statusEl.innerHTML = '<div class="status-box error">Upload failed: ' + esc(e.message) + '</div>';
+      } finally {
+        btnUpload.disabled = false;
+        btnUpload.textContent = "Upload & Parse";
+      }
+    } else if (pasteText.value.trim()) {
+      btnUpload.disabled = true;
+      btnUpload.textContent = "Parsing...";
+      try {
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: pasteText.value }),
+        });
+        const data = await res.json();
+        if (!res.ok) { statusEl.innerHTML = '<div class="status-box error">' + esc(data.error) + '</div>'; return; }
+        uploadedRawText = data.rawText;
+        showEditorState(data.parsed, data.rawText);
+      } catch (e) {
+        statusEl.innerHTML = '<div class="status-box error">Parse failed: ' + esc(e.message) + '</div>';
+      } finally {
+        btnUpload.disabled = false;
+        btnUpload.textContent = "Upload & Parse";
+      }
+    } else {
+      statusEl.innerHTML = '<div class="status-box error">Please select a file or paste resume text.</div>';
+    }
+  });
+}
+
+function showEditorState(profile, rawText) {
+  const p = profile || {};
+  let html = '<div class="editor"><div class="editor-split">';
+
+  // Left: raw text
+  html += '<div class="editor-raw">';
+  html += '<label>Extracted Text</label>';
+  html += '<textarea readonly>' + esc(rawText || "") + '</textarea>';
+  html += '</div>';
+
+  // Right: editable form
+  html += '<div class="editor-form">';
+  html += formGroup("Name", "text", "ed-name", p.name || "");
+  html += formGroup("Email", "email", "ed-email", p.email || "");
+  html += formGroup("Location", "text", "ed-location", p.location || "");
+  html += formGroup("Phone", "text", "ed-phone", p.phone || "");
+  html += formGroupTextarea("URLs (one per line)", "ed-urls", (p.urls || []).join("\n"));
+  html += formGroupTextarea("Summary", "ed-summary", p.summary || "");
+  html += formGroup("Target Roles (comma-separated)", "text", "ed-roles", (p.targetRoles || []).join(", "));
+
+  // Experience repeater
+  html += '<div class="form-group"><label>EXPERIENCE</label><div id="ed-exp-list">';
+  if (p.experience && p.experience.length) {
+    for (let i = 0; i < p.experience.length; i++) {
+      html += expRepeater(i, p.experience[i]);
+    }
+  }
+  html += '</div><button class="add-btn" onclick="addExp()">+ Add Experience</button></div>';
+
+  // Education repeater
+  html += '<div class="form-group"><label>EDUCATION</label><div id="ed-edu-list">';
+  if (p.education && p.education.length) {
+    for (let i = 0; i < p.education.length; i++) {
+      html += eduRepeater(i, p.education[i]);
+    }
+  }
+  html += '</div><button class="add-btn" onclick="addEdu()">+ Add Education</button></div>';
+
+  // Skills repeater
+  html += '<div class="form-group"><label>SKILLS</label><div id="ed-skill-list">';
+  if (p.skills && p.skills.length) {
+    for (let i = 0; i < p.skills.length; i++) {
+      html += skillRepeater(i, p.skills[i]);
+    }
+  }
+  html += '</div><button class="add-btn" onclick="addSkill()">+ Add Skill Category</button></div>';
+
+  html += '</div></div>'; // close editor-form + editor-split
+
+  html += '<div class="editor-actions">';
+  html += '<button class="btn-secondary" onclick="showUploadState()">Back</button>';
+  html += '<button class="btn-primary" id="btnSaveProfile">Save Profile</button>';
+  html += '</div>';
+  html += '<div id="editorStatus"></div>';
+  html += '</div>';
+
+  profileContent.innerHTML = html;
+
+  document.getElementById("btnSaveProfile").addEventListener("click", saveProfile);
+}
+
+function formGroup(label, type, id, value) {
+  return '<div class="form-group"><label>' + esc(label) + '</label><input type="' + type + '" id="' + id + '" value="' + esc(value) + '"></div>';
+}
+
+function formGroupTextarea(label, id, value) {
+  return '<div class="form-group"><label>' + esc(label) + '</label><textarea id="' + id + '">' + esc(value) + '</textarea></div>';
+}
+
+let expCounter = 0;
+function expRepeater(i, exp) {
+  const idx = expCounter++;
+  return '<div class="repeater" data-exp="' + idx + '">' +
+    '<button class="remove-btn" onclick="this.parentElement.remove()">&times;</button>' +
+    '<div class="form-group"><label>Title</label><input class="exp-f-title" value="' + esc(exp.title || "") + '"></div>' +
+    '<div class="form-group"><label>Company</label><input class="exp-f-company" value="' + esc(exp.company || "") + '"></div>' +
+    '<div class="form-group"><label>Dates</label><input class="exp-f-dates" value="' + esc(exp.dates || "") + '"></div>' +
+    '<div class="form-group"><label>Bullets (one per line)</label><textarea class="exp-f-bullets">' + esc((exp.bullets || []).join("\n")) + '</textarea></div>' +
+    '<div class="form-group"><label>Technologies (comma-separated)</label><input class="exp-f-tech" value="' + esc((exp.technologies || []).join(", ")) + '"></div>' +
+    '</div>';
+}
+
+function addExp() {
+  const list = document.getElementById("ed-exp-list");
+  list.insertAdjacentHTML("beforeend", expRepeater(list.children.length, {}));
+}
+
+let eduCounter = 0;
+function eduRepeater(i, edu) {
+  const idx = eduCounter++;
+  return '<div class="repeater" data-edu="' + idx + '">' +
+    '<button class="remove-btn" onclick="this.parentElement.remove()">&times;</button>' +
+    '<div class="form-group"><label>Degree</label><input class="edu-f-degree" value="' + esc(edu.degree || "") + '"></div>' +
+    '<div class="form-group"><label>School</label><input class="edu-f-school" value="' + esc(edu.school || "") + '"></div>' +
+    '<div class="form-group"><label>Year</label><input class="edu-f-year" value="' + esc(edu.year || "") + '"></div>' +
+    '</div>';
+}
+
+function addEdu() {
+  const list = document.getElementById("ed-edu-list");
+  list.insertAdjacentHTML("beforeend", eduRepeater(list.children.length, {}));
+}
+
+let skillCounter = 0;
+function skillRepeater(i, skill) {
+  const idx = skillCounter++;
+  return '<div class="repeater" data-skill="' + idx + '">' +
+    '<button class="remove-btn" onclick="this.parentElement.remove()">&times;</button>' +
+    '<div class="form-group"><label>Category</label><input class="skill-f-cat" value="' + esc(skill.category || "") + '"></div>' +
+    '<div class="form-group"><label>Items (comma-separated)</label><input class="skill-f-items" value="' + esc((skill.items || []).join(", ")) + '"></div>' +
+    '</div>';
+}
+
+function addSkill() {
+  const list = document.getElementById("ed-skill-list");
+  list.insertAdjacentHTML("beforeend", skillRepeater(list.children.length, {}));
+}
+
+function gatherFormProfile() {
+  const val = id => (document.getElementById(id)?.value || "").trim();
+  const profile = { name: val("ed-name") };
+  if (val("ed-email")) profile.email = val("ed-email");
+  if (val("ed-location")) profile.location = val("ed-location");
+  if (val("ed-phone")) profile.phone = val("ed-phone");
+
+  const urls = val("ed-urls").split("\n").map(u => u.trim()).filter(Boolean);
+  if (urls.length) profile.urls = urls;
+
+  if (val("ed-summary")) profile.summary = val("ed-summary");
+
+  const roles = val("ed-roles").split(",").map(r => r.trim()).filter(Boolean);
+  if (roles.length) profile.targetRoles = roles;
+
+  // Experience
+  const exps = [];
+  document.querySelectorAll("#ed-exp-list .repeater").forEach(el => {
+    const title = el.querySelector(".exp-f-title")?.value.trim() || "";
+    const company = el.querySelector(".exp-f-company")?.value.trim() || "";
+    const dates = el.querySelector(".exp-f-dates")?.value.trim() || "";
+    const bullets = (el.querySelector(".exp-f-bullets")?.value || "").split("\n").map(b => b.trim()).filter(Boolean);
+    const tech = (el.querySelector(".exp-f-tech")?.value || "").split(",").map(t => t.trim()).filter(Boolean);
+    if (title || company) exps.push({ title, company, dates, bullets, technologies: tech });
+  });
+  if (exps.length) profile.experience = exps;
+
+  // Education
+  const edus = [];
+  document.querySelectorAll("#ed-edu-list .repeater").forEach(el => {
+    const degree = el.querySelector(".edu-f-degree")?.value.trim() || "";
+    const school = el.querySelector(".edu-f-school")?.value.trim() || "";
+    const year = el.querySelector(".edu-f-year")?.value.trim() || "";
+    if (degree || school) edus.push({ degree, school, year });
+  });
+  if (edus.length) profile.education = edus;
+
+  // Skills
+  const skills = [];
+  document.querySelectorAll("#ed-skill-list .repeater").forEach(el => {
+    const category = el.querySelector(".skill-f-cat")?.value.trim() || "";
+    const items = (el.querySelector(".skill-f-items")?.value || "").split(",").map(s => s.trim()).filter(Boolean);
+    if (category && items.length) skills.push({ category, items });
+  });
+  if (skills.length) profile.skills = skills;
+
+  return profile;
+}
+
+async function saveProfile() {
+  const profile = gatherFormProfile();
+  if (!profile.name) {
+    document.getElementById("editorStatus").innerHTML = '<div class="status-box error">Name is required.</div>';
+    return;
+  }
+  const btn = document.getElementById("btnSaveProfile");
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+  try {
+    const res = await fetch("/api/profile", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(profile),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      document.getElementById("editorStatus").innerHTML = '<div class="status-box error">' + esc(data.error) + '</div>';
+      return;
+    }
+    loadProfile(); // reload to show view state
+  } catch (e) {
+    document.getElementById("editorStatus").innerHTML = '<div class="status-box error">Save failed: ' + esc(e.message) + '</div>';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save Profile";
+  }
+}
+
+function renderProfileView(p) {
+  let html = '<div class="profile-header"><div>';
+  html += '<div class="profile-name">' + esc(p.name || "Unnamed") + '</div>';
+  html += '<div class="profile-contact">';
+  if (p.email) html += esc(p.email);
+  if (p.location) html += (p.email ? ' &middot; ' : '') + esc(p.location);
+  html += '</div>';
+  if (p.urls && p.urls.length) {
+    html += '<div class="profile-urls">';
+    for (const u of p.urls) html += '<a href="' + esc(u) + '" target="_blank">' + esc(u.replace(/^https?:\/\//, '')) + '</a>';
+    html += '</div>';
+  }
+  html += '</div><div class="profile-btns">';
+  html += '<button class="profile-refresh" id="btnEditProfile">Edit</button>';
+  html += '<button class="profile-refresh" id="btnReupload">Re-upload</button>';
+  html += '<button class="profile-refresh" onclick="loadProfile()">Refresh</button>';
+  html += '</div></div>';
+
+  // Summary
+  if (p.summary) {
+    html += '<div class="profile-section"><h2>Summary</h2>';
+    html += '<div class="profile-summary">' + esc(p.summary) + '</div></div>';
+  }
+
+  // Target roles
+  if (p.targetRoles && p.targetRoles.length) {
+    html += '<div class="profile-section"><h2>Target Roles</h2>';
+    html += '<div class="profile-summary">' + p.targetRoles.map(r => esc(r)).join(', ') + '</div></div>';
+  }
+
+  // Experience
+  if (p.experience && p.experience.length) {
+    html += '<div class="profile-section"><h2>Experience</h2>';
+    for (const exp of p.experience) {
+      html += '<div class="experience-item">';
+      html += '<div class="exp-title">' + esc(exp.title) + '</div>';
+      html += '<div class="exp-company">' + esc(exp.company) + ' <span class="exp-dates">' + esc(exp.dates) + '</span></div>';
+      if (exp.bullets && exp.bullets.length) {
+        html += '<ul class="exp-bullets">';
+        for (const b of exp.bullets) html += '<li>' + esc(b) + '</li>';
+        html += '</ul>';
+      }
+      if (exp.technologies && exp.technologies.length) {
+        html += '<div class="exp-tech">Tech: ' + exp.technologies.map(t => esc(t)).join(', ') + '</div>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+
+  // Skills
+  if (p.skills && p.skills.length) {
+    html += '<div class="profile-section"><h2>Skills</h2>';
+    for (const s of p.skills) {
+      html += '<div><span class="skill-cat">' + esc(s.category) + ':</span> <span class="skill-items">' + s.items.map(i => esc(i)).join(', ') + '</span></div>';
+    }
+    html += '</div>';
+  }
+
+  // Education
+  if (p.education && p.education.length) {
+    html += '<div class="profile-section"><h2>Education</h2>';
+    for (const e of p.education) {
+      html += '<div class="edu-item">' + esc(e.degree) + ' &mdash; ' + esc(e.school) + ' (' + esc(e.year) + ')</div>';
+    }
+    html += '</div>';
+  }
+
+  profileContent.innerHTML = html;
+
+  document.getElementById("btnEditProfile").addEventListener("click", () => {
+    showEditorState(p, uploadedRawText);
+  });
+  document.getElementById("btnReupload").addEventListener("click", () => {
+    showUploadState();
+  });
+}
+
+// --- Init ---
+async function init() {
+  loadProfile();
+
+  const res = await fetch("/api/jobs");
+  const data = await res.json();
+  jobSelect.innerHTML = "";
+  if (data.jobs.length === 0) {
+    jobSelect.innerHTML = '<option value="">No reviews available</option>';
+    metaEl.textContent = "No suggestion files found. Run a review first.";
+    return;
+  }
+  for (const job of data.jobs) {
+    const opt = document.createElement("option");
+    opt.value = job.id;
+    opt.textContent = job.label;
+    jobSelect.appendChild(opt);
+  }
+  loadJob(data.jobs[0].id);
+}
+
+jobSelect.addEventListener("change", () => loadJob(jobSelect.value));
+
+async function loadJob(jobId) {
+  currentJobId = jobId;
+  cardsEl.innerHTML = "";
+  statusArea.innerHTML = "";
+  selectAllCb.checked = false;
+  btnApply.disabled = true;
+
+  const res = await fetch("/api/suggestions?jobId=" + encodeURIComponent(jobId));
+  if (!res.ok) {
+    cardsEl.innerHTML = '<div class="empty">No suggestions found for this job.</div>';
+    metaEl.textContent = "";
+    suggestions = [];
+    return;
+  }
+
+  const data = await res.json();
+  suggestions = data.suggestions || [];
+  metaEl.textContent = "Generated: " + (data.generatedAt || "unknown") + " | " + suggestions.length + " suggestion(s)";
+  renderCards();
+}
+
+function renderCards() {
+  cardsEl.innerHTML = "";
+  if (suggestions.length === 0) {
+    cardsEl.innerHTML = '<div class="empty">No suggestions.</div>';
+    return;
+  }
+  for (const s of suggestions) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.dataset.id = s.id;
+
+    let suggestedBlock = "";
+    if (s.type !== "remove") {
+      suggestedBlock = '<div class="text-label">Suggested</div><div class="text-block text-suggested">' + esc(s.suggested) + "</div>";
+    }
+
+    card.innerHTML =
+      '<div class="card-header">' +
+        '<input type="checkbox" class="sg-cb" data-id="' + s.id + '">' +
+        '<span class="card-id">#' + s.id + "</span>" +
+        '<span class="card-section">' + esc(s.section) + "</span>" +
+        '<span class="badge badge-' + s.type + '">' + s.type + "</span>" +
+        '<span class="tag">' + esc(s.principle) + "</span>" +
+      "</div>" +
+      '<div class="text-label">Current</div>' +
+      '<div class="text-block text-current">' + esc(s.current) + "</div>" +
+      suggestedBlock +
+      '<div class="reason">' + esc(s.reason) + "</div>";
+
+    cardsEl.appendChild(card);
+  }
+  updateApplyBtn();
+}
+
+function esc(str) {
+  const d = document.createElement("div");
+  d.textContent = str || "";
+  return d.innerHTML;
+}
+
+// --- Checkboxes ---
+selectAllCb.addEventListener("change", () => {
+  const cbs = document.querySelectorAll(".sg-cb");
+  for (const cb of cbs) {
+    if (!cb.closest(".card").classList.contains("applied")) {
+      cb.checked = selectAllCb.checked;
+    }
+  }
+  updateApplyBtn();
+});
+
+cardsEl.addEventListener("change", (e) => {
+  if (e.target.classList.contains("sg-cb")) updateApplyBtn();
+});
+
+function getCheckedIds() {
+  return Array.from(document.querySelectorAll(".sg-cb:checked")).map(cb => Number(cb.dataset.id));
+}
+
+function updateApplyBtn() {
+  const ids = getCheckedIds();
+  btnApply.disabled = ids.length === 0;
+  btnApply.textContent = ids.length > 0 ? "Apply Selected (" + ids.length + ")" : "Apply Selected";
+}
+
+// --- Actions ---
+btnApply.addEventListener("click", async () => {
+  const ids = getCheckedIds();
+  if (ids.length === 0) return;
+  await applyIds(ids);
+});
+
+btnAll.addEventListener("click", async () => {
+  await applyIds("all");
+});
+
+async function applyIds(ids) {
+  btnApply.disabled = true;
+  btnAll.disabled = true;
+  statusArea.innerHTML = '<div class="status-box">Applying...</div>';
+
+  try {
+    const res = await fetch("/api/accept", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids, jobId: currentJobId }),
+    });
+    const result = await res.json();
+    if (!res.ok) {
+      statusArea.innerHTML = '<div class="status-box error">Error: ' + esc(result.error || "Unknown error") + "</div>";
+      return;
+    }
+
+    // Mark applied cards
+    for (const id of result.applied) {
+      const card = cardsEl.querySelector('[data-id="' + id + '"]');
+      if (card) {
+        card.classList.add("applied");
+        const cb = card.querySelector(".sg-cb");
+        if (cb) { cb.checked = false; cb.disabled = true; }
+      }
+    }
+
+    statusArea.innerHTML =
+      '<div class="status-box success">' +
+      "Applied: " + result.applied.length +
+      " | Skipped: " + result.skipped.length +
+      (result.backupCreated ? " | Backup created" : "") +
+      "</div>";
+
+    // Refresh profile to show changes
+    loadProfile();
+  } catch (e) {
+    statusArea.innerHTML = '<div class="status-box error">Network error: ' + esc(e.message) + "</div>";
+  } finally {
+    btnAll.disabled = false;
+    updateApplyBtn();
+  }
+}
+
+init();
+</script>
+</body>
+</html>

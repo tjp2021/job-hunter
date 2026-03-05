@@ -3,3 +3,7 @@ data/profile.json
 data/cache
 data/tracker
 data/output
+
+# Env files
+.env
+.env.*
